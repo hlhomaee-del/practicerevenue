@@ -668,7 +668,7 @@ function sNo(){tn(330,.14,'sine',.05)}
 function sDn(){tn(523,.06);setTimeout(()=>tn(659,.06),35);setTimeout(()=>tn(784,.06),70);setTimeout(()=>tn(1047,.12),105)}
 function tS(){sOn=!sOn;document.getElementById('sB').textContent=sOn?'🔊':'🔇'}
 
-function aP(n,cat){sc+=n;cor++;if(cat)cats[cat]=(cats[cat]||0)+1;strk++;document.getElementById('sN').textContent=sc;document.getElementById('kN').textContent=strk;const t=document.getElementById('toast');t.textContent=`+${n}`;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1100);sOk()}
+function aP(n,cat){sc+=n;cor++;if(cat)cats[cat]=(cats[cat]||0)+1;strk++;document.getElementById('sN').textContent=sc;document.getElementById('kN').textContent=strk;const t=document.getElementById('toast');t.textContent=`+${n}`;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1100)}
 function rS(){strk=0;document.getElementById('kN').textContent=0}
 
 function go(i){
@@ -682,12 +682,19 @@ document.querySelectorAll('.nb').forEach(b=>b.addEventListener('click',()=>go(pa
 
 function chk(btn,correct,qid,rat,cat){
   const par=btn.parentElement;const fb=document.getElementById(qid+'-fb');
+  if(par.querySelector('.op.c,.op.w'))return;
   par.querySelectorAll('.op').forEach(o=>o.classList.add('x'));
-  if(correct){btn.classList.add('c');fb.className='fb c';fb.textContent='✓ '+rat;aP(10,cat)}
-  else{btn.classList.add('w');fb.className='fb w';fb.textContent='✗ '+rat;rS();sNo()}
+  if(correct){
+    btn.classList.add('c');fb.className='fb c';fb.innerHTML='<strong>✓ Correct!</strong> '+rat;aP(10,cat);sOk()
+  }else{
+    btn.classList.add('w');
+    const allBtns=par.querySelectorAll('.op');
+    allBtns.forEach(o=>{if(o.getAttribute('onclick')&&o.getAttribute('onclick').includes(',true,'))o.classList.add('c')});
+    fb.className='fb w';fb.innerHTML='<strong>✗ Incorrect.</strong> '+rat;rS();sNo()
+  }
 }
 
-function cs(i){if(comp.has(i))return;comp.add(i);const b=document.getElementById('c'+i);if(b){b.classList.add('dn');b.textContent='✓ Done!'}document.querySelector(`.nb[data-t="${i}"]`)?.classList.add('d');aP(20);sDn()}
+function cs(i){if(comp.has(i))return;comp.add(i);const b=document.getElementById('c'+i);if(b){b.classList.add('dn');b.textContent='✓ Done!'}document.querySelector(`.nb[data-t="${i}"]`)?.classList.add('d');aP(20);setTimeout(()=>sDn(),50)}
 
 // CHALLENGE
 const cQs=[
@@ -725,10 +732,17 @@ function showCQ(){
 }
 function cAns(i){
   const q=cQs[cIdx];const fb=document.getElementById('cq-fb');
-  document.querySelectorAll('#cqO .op').forEach(b=>b.classList.add('x'));
-  if(i===q.a){document.querySelectorAll('#cqO .op')[i].classList.add('c');fb.className='fb c';fb.textContent='✓ '+q.r;cCor++;aP(10)}
-  else{document.querySelectorAll('#cqO .op')[i].classList.add('w');if(document.querySelectorAll('#cqO .op')[q.a])document.querySelectorAll('#cqO .op')[q.a].classList.add('c');fb.className='fb w';fb.textContent='✗ '+q.r;rS();sNo()}
-  setTimeout(()=>{cIdx++;showCQ()},1400);
+  const allBtns=document.querySelectorAll('#cqO .op');
+  if(allBtns[0].classList.contains('x'))return;
+  allBtns.forEach(b=>b.classList.add('x'));
+  if(i===q.a){
+    allBtns[i].classList.add('c');fb.className='fb c';fb.innerHTML='<strong>✓ Correct!</strong> '+q.r;cCor++;aP(10);sOk()
+  }else{
+    allBtns[i].classList.add('w');
+    if(allBtns[q.a])allBtns[q.a].classList.add('c');
+    fb.className='fb w';fb.innerHTML='<strong>✗ Incorrect.</strong> '+q.r;rS();sNo()
+  }
+  setTimeout(()=>{cIdx++;showCQ()},1800);
 }
 function endC(){
   clearInterval(cInt);
@@ -736,7 +750,7 @@ function endC(){
   document.getElementById('cD').style.display='block';
   document.getElementById('cSc').textContent=cCor;
   document.getElementById('cSt').style.display='inline-flex';
-  if(cCor>=12){bdg++;document.getElementById('bN').textContent=bdg;sDn()}
+  if(cCor>=12){bdg++;document.getElementById('bN').textContent=bdg;setTimeout(()=>sDn(),50)}
 
   // Generate study guide with ALL questions, correct answers, and rationales
   const guide=document.getElementById('studyGuide');
